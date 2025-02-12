@@ -1,11 +1,17 @@
 from .modelinterface import ModelInterface, Result
 
-from tflite_runtime.interpreter import Interpreter
-from tflite_support import metadata
+try:
+    from ai_edge_litert.interpreter import Interpreter
+except ImportError:
+    from tflite_runtime.interpreter import Interpreter
 
 from ultralytics.utils import ops
 from ultralytics.engine.results import Boxes
+
 import yaml
+import zipfile
+
+from numpy import expand_dims
 
 
 class FastDetector(ModelInterface):
@@ -14,13 +20,11 @@ class FastDetector(ModelInterface):
 
     def __init__(self, model_path: str, **args):
         with open(model_path, "rb") as file:
-            displayer = metadata.MetadataDisplayer.with_model_buffer(file.read())
+            input = None
+            with zipfile.ZipFile(file, "r") as zf:
+                input = zf.read("temp_meta.txt")
 
-            tags = []
-            for char in displayer.get_associated_file_buffer("temp_meta.txt"):
-                tags.append(chr(char))
-            other_data = "".join(tags)
-            output = yaml.safe_load(other_data)
+            output = yaml.safe_load(input.decode("utf-8"))
 
             self.names = output["names"]
 
@@ -39,7 +43,8 @@ class FastDetector(ModelInterface):
             self.height = int(input_shape[1])
             self.width = int(input_shape[2])
 
-    def detect(self, image):
+    def detect(self, image, raw):
+        image = expand_dims(image, axis=0)
         self.model.set_tensor(self.input_details[0]["index"], image)
 
         self.model.invoke()

@@ -3,18 +3,12 @@ name = "DroneObjDetectionGSU"
 version = "0.1.0"
 description = "Object Detection using Drone Imagery"
 
-dependencies = [
-	'opencv-python',
-	'numpy<2.0.0',
-	'ultralytics',
-	'tflite_runtime',
-	'tflite_support',
-]
+dependencies = ['opencv-python', 'numpy<2.0.0', 'ultralytics', 'tflite_runtime']
 
 requires-python = ">=3.11"
 
 [project.optional-dependencies]
-pi = ['picamera2', 'libcamera']
+pi = ['picamera2']
 dev = ['mypy']
 
 [build-system]

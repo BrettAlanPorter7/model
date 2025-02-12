@@ -1,5 +1,6 @@
 from .modelinterface import ModelInterface
 from .yolo import YoloDetector
+from .plainyolo import PlainYoloDetector
 from .new import FastDetector
 import sys
 import cv2
@@ -10,11 +11,19 @@ import time
 # TODO: refactor this into a class
 try:
     from picamera2 import Picamera2
-    from libcamera import Transform
+
+    try:
+        from libcamera import Transform
+    except ImportError:
+        raise RuntimeError(
+            "ERROR: Please install the libcamera library to use the PiCamera."
+        )
 
     camera: Picamera2
 
     def prepare_camera():
+        global camera
+
         camera = Picamera2()
         # BGR888 is actually RGB, yes, I know, it's confusing.
         # RGB is what the model can take as an input.
@@ -27,10 +36,18 @@ try:
         camera.start()
 
     def capture():
+        global camera
+
         value = camera.capture_array()
-        return value, value
+
+        float_array = value.astype(float32)
+        float_array /= 255.0
+
+        return float_array, value
 
     def stop_camera():
+        global camera
+
         camera.close()
 
     print("INFO: Using PiCamera.")
@@ -58,13 +75,12 @@ except ImportError:
                 "ERROR: Unable to read from webcam. Please verify your webcam settings."
             )
 
-        rame = cv2.flip(frame, 1)
+        # frame = cv2.flip(frame, 1)
 
         frame = cv2.resize(frame, (640, 640))
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         float_array = rgb.astype(float32)
         float_array /= 255.0
-        float_array = expand_dims(float_array, axis=0)
 
         return float_array, frame
 
@@ -80,11 +96,14 @@ except ImportError:
 
 def main():
     # Load the model
-    model: ModelInterface = YoloDetector("models/best_float32.tflite")
-    # model: ModelInterface = FastDetector("models/best_float32.tflite")
+    model: ModelInterface
+
+    # model = PlainYoloDetector("models/best_float32.tflite")
+    # model = YoloDetector("models/best_float32.tflite")
+    model = FastDetector("models/best_float32.tflite")
 
     # Variables to calculate FPS
-    counter, fps = 0, 0.0
+    counter, fps, frame = 0, 0.0, 0
     start_time = time.time()
     fps_avg_frame_count = 10
 
@@ -93,9 +112,12 @@ def main():
     while True:
         array, image = capture()
 
-        results = model.detect(array)
+        results = model.detect(array, image)
 
         for result in results:
+            if result.name == "person":
+                print("Person detected!")
+
             cv2.rectangle(
                 img=image,
                 pt1=result.point1,
@@ -110,15 +132,15 @@ def main():
             label_ymin = max(result.point1[1], label_size[1] + 10)
             cv2.rectangle(
                 image,
-                (int(result.point1[1]), label_ymin - label_size[1] - 10),
-                (int(result.point1[1]) + label_size[0], label_ymin + 2),
+                (int(result.point1[0]), label_ymin - label_size[1] - 10),
+                (int(result.point1[0]) + label_size[0], label_ymin + 2),
                 (255, 255, 255),
                 cv2.FILLED,
             )
             cv2.putText(
                 image,
                 label,
-                (int(result.point1[1]), label_ymin - 7),
+                (int(result.point1[0]), label_ymin - 7),
                 cv2.FONT_HERSHEY_SIMPLEX,
                 0.7,
                 (0, 0, 0),
@@ -145,6 +167,8 @@ def main():
         )
 
         cv2.imshow("Camera", image)
+
+        counter += 1
 
         if cv2.waitKey(1) & 0xFF == ord("q"):
             break

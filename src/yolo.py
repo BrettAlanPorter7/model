@@ -1,15 +1,16 @@
 from .modelinterface import ModelInterface, Result
 from ultralytics import YOLO
-from ultralytics.engine.predictor import BasePredictor
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.models.yolo.detect import DetectionPredictor
 from ultralytics.cfg import get_cfg
+from torch import from_numpy
+from numpy import swapaxes, expand_dims
 
 
 class YoloDetector(ModelInterface):
     wrapper: YOLO
     model: DetectionModel
-    predictor: BasePredictor
+    predictor: DetectionPredictor
 
     def __init__(self, model_path: str, **args):
         self.wrapper = YOLO(model_path)
@@ -29,7 +30,7 @@ class YoloDetector(ModelInterface):
         self.predictor.args = get_cfg(self.predictor.args, args)
         self.predictor.setup_model(self.model)
 
-    def detectOld(self, image):
+    def detectOld(self, image, raw):
         results = self.wrapper.predict(image, stream=True)
 
         for result in results:
@@ -49,10 +50,15 @@ class YoloDetector(ModelInterface):
                     point2=(round(box[2]), round(box[3])),
                 )
 
-    def detect(self, image):
-        original_results = self.predictor.stream_inference(source=image)
+    def detect(self, image, raw):
+        input_image = swapaxes(image, 0, 2)
+        input_image = expand_dims(input_image, axis=0)
+        tensor = from_numpy(input_image).to(self.predictor.device)
+        self.predictor.batch = [tensor]
+        original_results = self.predictor.inference(tensor)
+        final_results = self.predictor.postprocess(original_results, tensor, [image])
 
-        for result in original_results:
+        for result in final_results:
             boxes: list[list] = result.boxes.xyxy.tolist()
             names: list[int] = result.boxes.cls.tolist()
             confidences: list[float] = result.boxes.conf.tolist()

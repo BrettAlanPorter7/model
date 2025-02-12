@@ -1,5 +1,6 @@
 from abc import abstractmethod, ABC
 from numpy import ndarray
+from cv2.typing import MatLike
 
 
 class Result:
@@ -28,5 +29,5 @@ class ModelInterface(ABC):
         pass
 
     @abstractmethod
-    def detect(self, image: ndarray) -> list[Result]:
+    def detect(self, image: ndarray, raw: MatLike) -> list[Result]:
         pass
