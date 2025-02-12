@@ -4,8 +4,10 @@ from .plainyolo import PlainYoloDetector
 from .new import FastDetector
 import sys
 import cv2
-from numpy import float32, expand_dims
+from numpy import float32
 import time
+
+import matplotlib.pyplot as plt
 
 # Attempt to load the pi camera, otherwise fall back to normal webcams.
 # TODO: refactor this into a class
@@ -109,6 +111,8 @@ def main():
 
     prepare_camera()
 
+    framecounts = []
+
     while True:
         array, image = capture()
 
@@ -153,6 +157,8 @@ def main():
             fps = fps_avg_frame_count / (end_time - start_time)
             start_time = time.time()
 
+            framecounts.append(fps)
+
         # Show the FPS
         fps_text = "FPS = {:.1f}".format(fps)
         text_location = (24, 24)
@@ -174,6 +180,13 @@ def main():
             break
 
     stop_camera()
+
+    plt.plot(framecounts)
+
+    plt.xlabel("Frame")
+    plt.ylabel("FPS")
+
+    plt.show()
 
 
 if __name__ == "__main__":
