@@ -31,7 +31,7 @@ class FastDetector(ModelInterface):
             # Return to the beginning of the file
             file.seek(0)
 
-            self.model = Interpreter(model_content=file.read(), num_threads=8)
+            self.model = Interpreter(model_content=file.read(), num_threads=4)
             self.model.allocate_tensors()
 
             # Get input and output tensors.
