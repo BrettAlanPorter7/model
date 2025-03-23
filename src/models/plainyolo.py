@@ -6,6 +6,8 @@ class PlainYoloDetector(ModelInterface):
     wrapper: YOLO
 
     def __init__(self, model_path: str, **args):
+        args = {**args, "verbose": False, "task": "detect"}
+
         self.wrapper = YOLO(model_path, **args)
 
     def detect(self, image, raw):

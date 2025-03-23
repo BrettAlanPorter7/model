@@ -13,4 +13,8 @@ build/
 data/*
 !data/README.md
 
+models/*/*
+/*.npy
+/*.tflite
+
 .env

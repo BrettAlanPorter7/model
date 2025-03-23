@@ -18,20 +18,31 @@ class FastDetector(ModelInterface):
     names: list[str]
     model: Interpreter
 
-    def __init__(self, model_path: str, **args):
+    def __init__(self, model_path: str, **kwargs):
         with open(model_path, "rb") as file:
             input = None
-            with zipfile.ZipFile(file, "r") as zf:
-                input = zf.read("temp_meta.txt")
+            metadata = kwargs.get("metadata", None)
 
-            output = yaml.safe_load(input.decode("utf-8"))
+            input_str = ""
+            
+            if metadata:
+                with open(metadata, "r") as f:
+                    input_str = f.read()
+            else:
+                with zipfile.ZipFile(file, "r") as zf:
+                    input = zf.read("temp_meta.txt")
+                input_str = input.decode("utf-8")
+
+            output = yaml.safe_load(input_str)
 
             self.names = output["names"]
 
             # Return to the beginning of the file
             file.seek(0)
 
-            self.model = Interpreter(model_content=file.read(), num_threads=4)
+            self.model = Interpreter(
+                model_content=file.read(), num_threads=kwargs.get("threads", 4)
+            )
             self.model.allocate_tensors()
 
             # Get input and output tensors.

@@ -24,6 +24,7 @@ class YoloDetector(ModelInterface):
             "conf": 0.25,
             "batch": 1,
             "task": "detect",
+            "device": "cpu",
         }
 
         self.predictor = DetectionPredictor(overrides=args)

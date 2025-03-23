@@ -1,5 +1,0 @@
-libcamera
-picamera2
-numpy  # To ensure compatibility with OpenCV on Raspberry Pi.
-opencv-python
-tflite-support
