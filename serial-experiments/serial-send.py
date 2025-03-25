@@ -50,8 +50,6 @@ def send_picture(serial_port: Serial):
 
 def receive_picture(serial_port: Serial):
 
-
-
     while True:
         try:
             if serial_port.in_waiting < 1:
@@ -73,8 +71,6 @@ def receive_picture(serial_port: Serial):
 def receive_select(serial_port: Serial):
     rl, wl, el = select.select([serial_port])
 
-    for port in rl:
-        
 
 SIZE = 32
 ROWS = int(SIZE // 0.66666)

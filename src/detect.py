@@ -2,6 +2,7 @@ from .cameras import CameraInterface
 from .models import ModelInterface
 import cv2
 import time
+from mjpeg_streamer import Stream, MjpegServer
 
 
 def object_detection_loop(camera: CameraInterface, model: ModelInterface):
@@ -9,6 +10,11 @@ def object_detection_loop(camera: CameraInterface, model: ModelInterface):
     counter, fps = 0, 0.0
     start_time = time.time()
     fps_avg_frame_count = 10
+
+    stream = Stream("picam", size=(640, 640), fps=5)
+    server = MjpegServer("0.0.0.0", 8080)
+    server.add_stream(stream)
+    server.start()
 
     while True:
         image = run_object_detection(camera, model)
@@ -32,7 +38,8 @@ def object_detection_loop(camera: CameraInterface, model: ModelInterface):
             2,
         )
 
-        cv2.imshow("Camera", image)
+        # cv2.imshow("Camera", image)
+        stream.set_frame(image)
 
         counter += 1
 

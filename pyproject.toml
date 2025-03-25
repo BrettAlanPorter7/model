@@ -3,7 +3,13 @@ name = "DroneObjDetectionGSU"
 version = "0.1.0"
 description = "Object Detection using Drone Imagery"
 
-dependencies = ['opencv-python', 'numpy<2.0.0', 'ultralytics', 'tflite_runtime']
+dependencies = [
+	'opencv-python-headless',
+	'numpy<2.0.0',
+	'ultralytics',
+	'tflite_runtime',
+	'mjpeg-streamer',
+]
 
 requires-python = ">=3.11"
 
