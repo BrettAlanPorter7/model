@@ -43,10 +43,7 @@ def run_benchmarks(camera: CameraInterface, frames=100):
         "Plain Yolo v5 f16": PlainYoloDetector("models/yolov5nu_float16.tflite"),
         "Custom f16": FastDetector("models/best_saved_model/best_float16.tflite"),
         "Custom f32": FastDetector("models/best_float32.tflite"),
-        "Yolo f32": YoloDetector("models/best_float32.tflite"),
-        "Yolo f16": YoloDetector(
-            "models/best_saved_model/best_float16.tflite", half=True
-        ),
+        "Yolo f32": YoloDetector("models/best_float32.tflite")
     }
 
     fig, ax = plt.subplots()

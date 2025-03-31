@@ -1,7 +1,8 @@
 from .cameras import CameraInterface
 from .models import ModelInterface, FastDetector, YoloDetector, PlainYoloDetector
-from .detect import run_object_detection
+from .detect import object_detection_loop
 from .benchmark import run_benchmarks
+
 
 def main():
     camera: CameraInterface
@@ -20,12 +21,13 @@ def main():
     # model = YoloDetector("models/best_float32.tflite")
     # model = FastDetector("models/yolov5nu_float16.tflite")
     # model = PlainYoloDetector("models/yolov5nu_float16.tflite")
-    # model = FastDetector("models/best_saved_model/best_float16.tflite")
+    model = FastDetector("models/best_float32.tflite")
 
-    # run_object_detection(camera, model)
-    run_benchmarks(camera)
+    object_detection_loop(camera, model)
+    # run_benchmarks(camera)
 
     camera.stop_camera()
+
 
 if __name__ == "__main__":
     main()
