@@ -1,0 +1,47 @@
+from pymavlink import mavutil
+
+print("Connecting to drone...")
+    master = mavutil.mavlink_connection('udp:127.0.0.1:14550')  # Adjust for actual drone connection
+    master.wait_heartbeat()  # Ensure connection is established
+    print("✅ Drone connected!")
+
+    while True:
+        array, image = capture()
+        results = model.detect(array, image) #potentially need to fix this so we get the person detection
+
+        no_person_detected = all(res.name != "person" for res in results)
+
+        msg = master.recv_match(type='HEARTBEAT', blocking=True)
+        mode = mavutil.mode_string_v10(msg) # Extract the flight mode from the heartbeat message
+        print(f"Current flight mode: {mode}")
+
+        if no_person_detected:
+            if mode != 'LOITER':
+                #print("✅ No person detected")
+                continue
+
+            else:
+                print("✅ No person detected")
+                master.mav.command_long_send(
+                    master.target_system, master.target_component,
+                    mavutil.mavlink.MAV_CMD_DO_SET_MODE, 0,
+                    0,  # Base mode (ignored)
+                    mavutil.mavlink.enums['MAV_MODE_AUTO_DISARMED'].value,  # Set to AUTO mode
+                    0, 0, 0, 0, 0  # Unused parameters
+                )
+
+        else:
+            if mode != 'LOITER':
+                print("🚨 Human detected! Halting drone for 5 seconds... 🚨")
+                master.mav.command_long_send(
+                    master.target_system, master.target_component,
+                    mavutil.mavlink.MAV_CMD_DO_SET_MODE, 0,
+                    0,  # Base mode (ignored)
+                    mavutil.mavlink.enums['MAV_MODE_LOITER'].value,  # Set to LOITER mode
+                    0, 0, 0, 0, 0  # Unused parameters
+                )
+                time.sleep(5)
+
+            else:
+                print("🚨 Human detected! Halting drone for 5 seconds... 🚨")
+                time.sleep(5)
