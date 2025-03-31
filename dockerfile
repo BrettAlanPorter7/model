@@ -21,7 +21,4 @@ if [ "$TARGETARCH" = "arm64" ]; then \
 fi
 
 EXPOSE 8080
-
-VOLUME /root/.config/Ultralytics/settings.json
-
 CMD ["python", "-m", "src"]
